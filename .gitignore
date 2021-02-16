@@ -218,6 +218,3 @@ gradle-app.setting
 **/build/
 
 # End of https://www.toptal.com/developers/gitignore/api/java,intellij,intellij+all,gradle,code-java
-
-**/.java
-**/.class
