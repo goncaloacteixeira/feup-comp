@@ -11,8 +11,32 @@ public class Calculator {
       Calculator myCalc = new Calculator(System.in);
       SimpleNode root = myCalc.Expression();    // returns reference to root node
       root.dump("");                            // prints the tree on the screen
+
+      System.out.println("Expression value: " + myCalc.eval(root));
+    }
+
+    int eval(SimpleNode node){
+        if(node.jjtGetNumChildren() == 0) // leaf node with integer value
+            return node.val;
+        else if (node.jjtGetNumChildren() == 1) // only one child
+            return this.eval((SimpleNode) node.jjtGetChild(0));
+
+        SimpleNode lhs = (SimpleNode) node.jjtGetChild(0); // left child
+        SimpleNode rhs = (SimpleNode) node.jjtGetChild(1); // right child
+
+        switch(node.id){
+             case CalculatorTreeConstants.JJTADD : return eval(lhs) + eval(rhs);
+             case CalculatorTreeConstants.JJTSUB : return eval(lhs) - eval(rhs);
+             case CalculatorTreeConstants.JJTMUL : return eval(lhs) * eval(rhs);
+             case CalculatorTreeConstants.JJTDIV : return eval(lhs) / eval(rhs);
+             default: //abort
+                System.out.println("Illegal operator!");
+                System.exit(1);
+        }
+        return 0;
     }
 }
+
 PARSER_END(Calculator)
 
 SKIP : {
@@ -29,20 +53,30 @@ SimpleNode Expression(): {}
   Expr1() <LF> { return jjtThis; }
 }
 
-void Expr1(): {}
+void Expr1() #void: {}
 {
-  Expr2()[("+" | "-") Expr2()]
+  Expr2(1)
+  [
+  ("+" Expr2(1) #Add(2)
+  | "-" Expr2(1) #Sub(2))
+  ]
 }
 
-void Expr2(): {}
+void Expr2(int sign) #void: {}
 {
-  Expr3()[("*" | "/") Expr3()]
+  Expr3(sign)
+  [
+  ("*" Expr3(1) #Mul(2)
+  | "/" Expr3(1) #Div(2))
+  ]
 }
 
-void Expr3(): {}
+void Expr3(int sign) #void: { Token t; }
 {
+  t =
   <INTEGER>
-  | "-" Expr3()
+  { jjtThis.val = sign * Integer.parseInt(t.image); } #Term
+  | "-" Expr3(-1)
   | "(" Expr1() ")"
 }
 
